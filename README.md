@@ -1,7 +1,7 @@
-# Electron Diffraction Pair Distribution Extraction Framework
+# Electron Pair Distribution Function Extraction Framework
 
 ## Project Description 
-This projects process electron diffraction patterns to extract the pair distribution function.
+With this framework you can process electron diffraction patterns to extract the pair distribution function.
 
 ## Installation
 
