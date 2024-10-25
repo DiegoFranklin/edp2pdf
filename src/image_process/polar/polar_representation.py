@@ -11,30 +11,26 @@ class PolarRepresentation:
     
     def __init__(self, 
                  edp: eDiffractionPattern,
-                 relative_radial_start: float = 0,
-                 relative_radial_end: float = 1,
-                 start_angle: float = 0,
-                 end_angle: float = 359,
+
+                 radial_range: Tuple[float, float] = (0, 1),
+                 angular_range: Tuple[float, float] = (0, 359),
+                 
                  angular_mask_getter: IAngularMask = MeanAngularMask,
                  polar_transformer: PolarTransformation = CVPolarTransformation):
         
-        if relative_radial_start<0:
-            raise ValueError('relative_radial_start must be greater than zero.')
-        if relative_radial_end>1:
-            raise ValueError('relative_radial_end must be less than one.')
-        if relative_radial_end < relative_radial_start:
-            raise ValueError('relative_radial_end must greater than relative_radial_start.')
+        self._check_radial_range(radial_range)
 
         # Initialize parameters and objects
         self._edp = edp
+
         self._polar_transformer = polar_transformer()
         self._angular_mask_getter = angular_mask_getter()
 
-        self._relative_radial_start = relative_radial_start
-        self._relative_radial_end = relative_radial_end
+        self._relative_radial_start = radial_range[0]
+        self._relative_radial_end = radial_range[1]
 
-        self._start_angle = start_angle
-        self._end_angle = end_angle
+        self._start_angle = angular_range[0]
+        self._end_angle = angular_range[1]
 
         self._full_radius_space = None
         self._full_theta_space = None
@@ -48,6 +44,16 @@ class PolarRepresentation:
         self._radius_space = None
         self._theta_space = None
         self._angular_mask = None
+
+    def _check_radial_range(self, radial_range):
+        start, end = radial_range
+
+        if start<0:
+            raise ValueError('relative_radial_start must be greater than zero.')
+        if end>1:
+            raise ValueError('relative_radial_end must be less than one.')
+        if end < start:
+            raise ValueError('relative_radial_end must greater than relative_radial_start.')
 
     # ======== Full data computation
     def _compute_full_polar_image(self):
@@ -91,12 +97,7 @@ class PolarRepresentation:
     def radial_range(self, range: Tuple[float, float]) -> None:
         start, end = range
 
-        if start<0:
-            raise ValueError('relative_radial_start must be greater than zero.')
-        if end>1:
-            raise ValueError('relative_radial_end must be less than one.')
-        if end < start:
-            raise ValueError('relative_radial_end must greater than relative_radial_start.')
+        self._check_radial_range(range)
         
         if start != self._relative_radial_start or end != self._relative_radial_end:
             self._relative_radial_start = start
