@@ -6,8 +6,7 @@
 ## Types
 - feature/   : New features
 - bugfix/    : Bug fixes
-- hotfix/    : Urgent fixes
-- release/   : Release preparations
+- refac/     : Refactorization
 - experiment/ : Experimental changes
 
 ## Best Practices
