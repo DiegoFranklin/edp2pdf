@@ -20,4 +20,4 @@ build/
 data/
 benchmark/
 .vscode
-
+enviroment_linux.yml
