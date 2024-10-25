@@ -1,0 +1,7 @@
+hyperspy==2.0.1
+matplotlib==3.8.4
+numpy==2.1.2
+opencv_python==4.9.0.80
+pytest==8.3.3
+scipy==1.14.1
+skimage==0.0

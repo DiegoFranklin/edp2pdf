@@ -1,0 +1,21 @@
+# Virtual enviroments
+venv/
+.env/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+.pytest_cache
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints
+
+# Packages file
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Others
+data/
+benchmark/

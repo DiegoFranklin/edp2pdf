@@ -1,0 +1,192 @@
+import numpy as np
+from typing import Tuple
+
+from src.image_process.diffraction_pattern import eDiffractionPattern
+from src.image_process.polar.polar_transformation import CVPolarTransformation, PolarTransformation
+from src.image_process.mask.angular_mask import IAngularMask, MeanAngularMask
+
+                
+
+class PolarRepresentation:
+    
+    def __init__(self, 
+                 edp: eDiffractionPattern,
+                 relative_radial_start: float = 0,
+                 relative_radial_end: float = 1,
+                 start_angle: float = 0,
+                 end_angle: float = 359,
+                 angular_mask_getter: IAngularMask = MeanAngularMask,
+                 polar_transformer: PolarTransformation = CVPolarTransformation):
+        
+        if relative_radial_start<0:
+            raise ValueError('relative_radial_start must be greater than zero.')
+        if relative_radial_end>1:
+            raise ValueError('relative_radial_end must be less than one.')
+        if relative_radial_end < relative_radial_start:
+            raise ValueError('relative_radial_end must greater than relative_radial_start.')
+
+        # Initialize parameters and objects
+        self._edp = edp
+        self._polar_transformer = polar_transformer()
+        self._angular_mask_getter = angular_mask_getter()
+
+        self._relative_radial_start = relative_radial_start
+        self._relative_radial_end = relative_radial_end
+
+        self._start_angle = start_angle
+        self._end_angle = end_angle
+
+        self._full_radius_space = None
+        self._full_theta_space = None
+        self._start_radial_index = None
+        self._end_radial_index = None
+        self._start_angle_index = None
+        self._end_angle_index = None
+
+        self._full_polar_image = None
+        self._polar_image = None
+        self._radius_space = None
+        self._theta_space = None
+        self._angular_mask = None
+
+    # ======== Full data computation
+    def _compute_full_polar_image(self):
+        if self._full_polar_image is None:  
+            self._full_polar_image = self._polar_transformer.transform(self._edp.data, self._edp.center)
+
+    def _compute_full_radius_space(self):
+        self._compute_full_polar_image()
+        if self._full_radius_space is None:
+            self._full_radius_space = np.arange(0, self._full_polar_image.shape[1], 1)
+
+    def _compute_full_theta_space(self):
+        self._compute_full_polar_image()
+        DEFAULT_MAX_ANGLE = 360
+        if self._full_theta_space is None:
+            self._full_theta_space = np.linspace(0, DEFAULT_MAX_ANGLE-1, self._full_polar_image.shape[0], endpoint=False)
+
+
+
+    # ======== Radial and angular index computation
+    def _compute_radial_index(self):
+        self._compute_full_radius_space()
+        self._start_radial_index = round(self._relative_radial_start * self._full_radius_space.shape[0])
+        self._end_radial_index = round(self._relative_radial_end * self._full_radius_space.shape[0])
+    
+    def _compute_angular_index(self):
+        self._compute_full_theta_space()
+        DEFAULT_MAX_ANGLE = 360
+        self._start_angle_index = int(np.argmin(np.abs(self._full_theta_space - (self._start_angle % DEFAULT_MAX_ANGLE))))
+        self._end_angle_index = int(np.argmin(np.abs(self._full_theta_space - (self._end_angle % DEFAULT_MAX_ANGLE))))
+
+    @property
+    def radial_range(self):
+        return (self._relative_radial_start, self._relative_radial_end)
+    
+    @property
+    def angular_range(self):
+        return (self._start_angle, self._end_angle)
+
+    @radial_range.setter
+    def radial_range(self, range: Tuple[float, float]) -> None:
+        start, end = range
+
+        if start<0:
+            raise ValueError('relative_radial_start must be greater than zero.')
+        if end>1:
+            raise ValueError('relative_radial_end must be less than one.')
+        if end < start:
+            raise ValueError('relative_radial_end must greater than relative_radial_start.')
+        
+        if start != self._relative_radial_start or end != self._relative_radial_end:
+            self._relative_radial_start = start
+            self._relative_radial_end = end
+
+            self._compute_radial_index()
+
+    @angular_range.setter
+    def angular_range(self, range: Tuple[float, float]) -> None:
+        start_angle, end_angle = range
+
+        if start_angle != self._start_angle or end_angle != self._end_angle:
+            self._start_angle = start_angle
+            self._end_angle = end_angle
+
+            self._compute_angular_index()
+
+
+
+    # ======== Polar image and space computation
+    def _compute_radius_space(self):
+        self._compute_radial_index()
+        self._radius_space = self._full_radius_space[self._start_radial_index:self._end_radial_index]
+
+    def _compute_theta_space(self):
+        self._compute_angular_index()
+        if self._start_angle_index <= self._end_angle_index:
+            self._theta_space = self._full_theta_space[self._start_angle_index:self._end_angle_index]
+        else:
+            self._theta_space = np.concatenate([
+                self._full_theta_space[self._start_angle_index:],
+                self._full_theta_space[:self._end_angle_index]
+            ])
+
+    def _compute_polar_image(self):
+        self._compute_radial_index()
+        self._compute_angular_index()
+        radial_cropped_polar_image = self._full_polar_image[:,self._start_radial_index:self._end_radial_index]
+
+        if self._start_angle_index <= self._end_angle_index:
+            self._polar_image = radial_cropped_polar_image[self._start_angle_index:self._end_angle_index, :]
+        else:
+            self._polar_image = np.concatenate([
+                radial_cropped_polar_image[self._start_angle_index:, :],
+                radial_cropped_polar_image[:self._end_angle_index, :]
+            ])
+
+
+
+    # ======== Angular mask computation
+    def _compute_angular_mask(self):
+        self._compute_radial_index()
+        self._compute_angular_index()
+        self._compute_polar_image()
+        full_angular_mask = self._angular_mask_getter.get_angular_mask(polar_representation=self)
+
+        if self._start_angle_index <= self._end_angle_index:
+            self._angular_mask = full_angular_mask[self._start_angle_index:self._end_angle_index]
+        else:
+            self._angular_mask = np.concatenate([
+                full_angular_mask[self._start_angle_index:],
+                full_angular_mask[:self._end_angle_index]
+            ])
+
+    def set_angular_mask_params(self, cyclic_shift: float = None, angular_range_expansion: float = None):
+        new_mask_getter = MeanAngularMask(angular_range_expansion=angular_range_expansion, cyclic_shift=cyclic_shift)
+        if new_mask_getter != self._angular_mask_getter:
+            self._angular_mask_getter = new_mask_getter
+            self._compute_angular_mask()
+
+
+    @property
+    def polar_image(self):
+        self._compute_polar_image()
+        return self._polar_image
+
+    @property
+    def radius(self):
+        self._compute_radius_space()
+        return self._radius_space
+    
+    @property
+    def theta(self):
+        self._compute_theta_space()
+        return self._theta_space
+
+    @property
+    def angular_mask(self):
+        self._compute_angular_mask()
+        return self._angular_mask
+
+
+        
