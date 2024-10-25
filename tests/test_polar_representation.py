@@ -47,7 +47,7 @@ def test_invalid_initialization(mock_edp):
     with pytest.raises(ValueError):
         PolarRepresentation(edp=mock_edp, radial_range=(0, 1.1))
     with pytest.raises(ValueError):
-        PolarRepresentation(edp=mock_edp, radial_range=(0.8), relative_radial_end=0.7)
+        PolarRepresentation(edp=mock_edp, radial_range=(0.8, 0,7))
 
 
 def test_radius_property(mock_edp):
@@ -72,17 +72,7 @@ def test_radius_property(mock_edp):
     assert radius[-1] == polar_representation._full_polar_image.shape[1] - 1
 
 
-def test_invalid_initialization(mock_edp):
-    """Test exceptions on invalid radial/angle values."""
-    with pytest.raises(ValueError):
-        PolarRepresentation(edp=mock_edp, relative_radial_start=-0.1)
-    with pytest.raises(ValueError):
-        PolarRepresentation(edp=mock_edp, relative_radial_end=1.1)
-    with pytest.raises(ValueError):
-        PolarRepresentation(edp=mock_edp, relative_radial_start=0.8, relative_radial_end=0.7)
-
-
-def test_full_attr_behaviour(mock_edp):
+def test_full_attr_behavior(mock_edp):
     """Test full attribute behavior"""
     polar_representation = PolarRepresentation(edp=mock_edp)
 
