@@ -7,6 +7,7 @@
 - feature/   : New features
 - bugfix/    : Bug fixes
 - refac/     : Refactorization
+- test/      : New tests
 - experiment/ : Experimental changes
 
 ## Best Practices
