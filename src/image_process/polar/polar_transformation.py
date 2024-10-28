@@ -15,42 +15,58 @@ class CVPolarTransformation(PolarTransformation):
     def __init__(self, interpolation_method : int = cv2.INTER_CUBIC):
 
         self._interpolation_method  = interpolation_method
+        self._max_radius: float = None
+        self._polar_image_size: Tuple[int, int] = None
+    
+    def _compute_max_radius(self, data_shape: Tuple[int, int], center: Tuple[int, int]) -> None:
 
+        if self._max_radius is None:
+            # Define the corners of the image
+            corners = [
+                (0, 0),  # Top-left
+                (0, data_shape[1] - 1),  # Top-right
+                (data_shape[0] - 1, 0),  # Bottom-left
+                (data_shape[0] - 1, data_shape[1] - 1)  # Bottom-right
+            ]
+
+            # Calculate the maximum distance from the center to the corners
+            self._max_radius = np.max([distance(center, corner) for corner in corners])
+
+    def _compute_polar_image_size(self, data_shape: Tuple[int, int], center: Tuple[int, int]) -> None:
+        if self._polar_image_size is None:
+
+            self._compute_max_radius(data_shape, center)
+            radial_size = round(self._max_radius)
+
+            azimuth_size = round(np.multiply(*data_shape) / radial_size)
+
+            self._polar_image_size = (azimuth_size, radial_size)
+
+    def _check_input_center(self, data_shape: Tuple[int, int], center: Tuple[int, int]) -> None:
+        
+        out_bounds_error = IndexError('Center index out of bounds.')
+        if center[0] > data_shape[0] or center[1] > data_shape[1]:
+            raise out_bounds_error
+        if center[0] < 0 or center[1] < 0:
+            raise out_bounds_error
+    
+    
     def transform(self,
                   data: np.ndarray,
                   center: Tuple[float, float]
                     ) -> np.ndarray:
 
-        out_bounds_error = IndexError('Center index out of bounds.')
-        if center[0] > data.shape[0] or center[1] > data.shape[1]:
-            raise out_bounds_error
-        if center[0] < 0 or center[1] < 0:
-            raise IndexError('Center index out of bounds.')
+        self._check_input_center(data.shape, center)
 
+        self._compute_max_radius(data.shape, center)
 
-        def euclidean_distance(p1, p2):
-            """Calculate the Euclidean distance between two points."""
-            return np.linalg.norm(np.array(p1) - np.array(p2))
-
-        # Define the corners of the image
-        corners = [
-            (0, 0),  # Top-left
-            (0, data.shape[1] - 1),  # Top-right
-            (data.shape[0] - 1, 0),  # Bottom-left
-            (data.shape[0] - 1, data.shape[1] - 1)  # Bottom-right
-        ]
-
-        # Calculate the maximum distance from the center to the corners
-        max_radius = round(np.max([distance(center, corner) for corner in corners]))
-
-        radial_size = max_radius
-        azimuth_size = round(np.multiply(*data.shape)/radial_size)
+        self._compute_polar_image_size(data.shape, center)
 
 
         polar_image = cv2.warpPolar(data,
-                                    (azimuth_size, radial_size),
+                                    self._polar_image_size,
                                     center,
-                                    max_radius,
+                                    self._max_radius,
                                     self._interpolation_method )
 
         return polar_image
