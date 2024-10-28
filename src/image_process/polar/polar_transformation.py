@@ -36,11 +36,11 @@ class CVPolarTransformation(PolarTransformation):
         if self._polar_image_size is None:
 
             self._compute_max_radius(data_shape, center)
-            radial_size = round(self._max_radius)
+            radial_size = round(np.pi * self._max_radius)
 
-            azimuth_size = round(np.multiply(*data_shape) / radial_size)
+            azimuth_size = round(self._max_radius)
 
-            self._polar_image_size = (azimuth_size, radial_size)
+            self._polar_image_size = (radial_size, azimuth_size)
 
     def _check_input_center(self, data_shape: Tuple[int, int], center: Tuple[int, int]) -> None:
         

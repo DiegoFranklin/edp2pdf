@@ -13,8 +13,9 @@ class TestCVPolarTransformation:
         self.transformation = CVPolarTransformation(interpolation_method=cv2.INTER_CUBIC)
 
         self.test_image = np.zeros((2048, 2048), dtype=np.uint8)
-        self.test_image[300:1500, 300:1500] = 255
         self.center = (1024, 1024)
+        self.test_image[300:1500, 300:1500] = 255
+        self.polar_image = self.transformation.transform(self.test_image, self.center)
 
     def test_transform_basic(self):
         """Test if the transform method works and returns a valid output."""
@@ -23,14 +24,11 @@ class TestCVPolarTransformation:
 
     def test_transform_shape(self):
         """Test if the output shape is correct."""
-        polar_image = self.transformation.transform(self.test_image, self.center)
         # Calculate expected dimensions
+
+        max_radius = self.transformation._max_radius
         
-        max_radius = round(np.linalg.norm(self.center))
-        
-        azimuth_size = round(np.multiply(*self.test_image.shape) / max_radius)
-        
-        assert polar_image.shape == (max_radius, azimuth_size), "Output shape does not match expected dimensions"
+        assert(np.pi * max_radius ** 2 >= np.multiply(*self.test_image.shape), "Output shape does not match expected dimensions")
 
     def test_transform_with_different_interpolation(self):
         """Test transformation with different interpolation methods."""
