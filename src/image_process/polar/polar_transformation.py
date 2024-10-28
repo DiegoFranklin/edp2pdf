@@ -3,6 +3,8 @@ import cv2
 import numpy as np
 from typing import Tuple
 
+from ..utils import distance
+
 class PolarTransformation(ABC):
     @abstractmethod
     def transform(self, data: np.ndarray, center: Tuple[float, float]):
@@ -39,7 +41,7 @@ class CVPolarTransformation(PolarTransformation):
         ]
 
         # Calculate the maximum distance from the center to the corners
-        max_radius = round(np.max([euclidean_distance(center, corner) for corner in corners]))
+        max_radius = round(np.max([distance(center, corner) for corner in corners]))
 
         radial_size = max_radius
         azimuth_size = round(np.multiply(*data.shape)/radial_size)
