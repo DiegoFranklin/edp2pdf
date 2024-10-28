@@ -36,9 +36,9 @@ class CVPolarTransformation(PolarTransformation):
         if self._polar_image_size is None:
 
             self._compute_max_radius(data_shape, center)
-            radial_size = round(np.pi * self._max_radius)
+            radial_size = round(self._max_radius)
 
-            azimuth_size = round(self._max_radius)
+            azimuth_size = round(np.pi * self._max_radius)
 
             self._polar_image_size = (radial_size, azimuth_size)
 
