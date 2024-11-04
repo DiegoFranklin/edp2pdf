@@ -152,7 +152,7 @@ class PolarRepresentation:
         self._compute_radial_index()
         self._compute_angular_index()
         self._compute_polar_image()
-        full_angular_mask = self._angular_mask_getter.get_angular_mask(polar_representation=self)
+        full_angular_mask = self._polar_transformer.transform(self._edp.mask, self._edp.center)[:,self._start_radial_index]
 
         if self._start_angle_index <= self._end_angle_index:
             self._angular_mask = full_angular_mask[self._start_angle_index:self._end_angle_index]
