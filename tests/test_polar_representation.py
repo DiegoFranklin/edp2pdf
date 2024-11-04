@@ -17,6 +17,7 @@ def mock_edp():
     """Mock for eDiffractionPattern"""
     mock = MagicMock(spec=eDiffractionPattern)
     mock.data = np.ones((2048, 2048))
+    mock.mask = np.ones((2048, 2048))
     mock.center = (1024, 1024)
     return mock
 
