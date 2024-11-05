@@ -21,12 +21,11 @@ class CVPolarTransformation(PolarTransformation):
     def _compute_max_radius(self, data_shape: Tuple[int, int], center: Tuple[int, int]) -> None:
 
         if self._max_radius is None:
-            # Define the corners of the image
             corners = [
-                (0, 0),  # Top-left
-                (0, data_shape[1] - 1),  # Top-right
-                (data_shape[0] - 1, 0),  # Bottom-left
-                (data_shape[0] - 1, data_shape[1] - 1)  # Bottom-right
+                (0, 0),  
+                (0, data_shape[1] - 1),  
+                (data_shape[0] - 1, 0), 
+                (data_shape[0] - 1, data_shape[1] - 1)  
             ]
 
             # Calculate the maximum distance from the center to the corners
@@ -36,9 +35,9 @@ class CVPolarTransformation(PolarTransformation):
         if self._polar_image_size is None:
 
             self._compute_max_radius(data_shape, center)
-            radial_size = round(self._max_radius)
+            radial_size = round(np.sqrt(np.pi) * self._max_radius)
 
-            azimuth_size = round(np.pi * self._max_radius)
+            azimuth_size = round(np.sqrt(np.pi) * self._max_radius)
 
             self._polar_image_size = (radial_size, azimuth_size)
 

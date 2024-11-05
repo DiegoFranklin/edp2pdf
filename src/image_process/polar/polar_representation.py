@@ -3,7 +3,6 @@ from typing import Tuple
 
 from src.image_process.diffraction_pattern import eDiffractionPattern
 from src.image_process.polar.polar_transformation import CVPolarTransformation, PolarTransformation
-from src.image_process.mask.angular_mask import IAngularMask, MeanAngularMask
 
                 
 
