@@ -13,10 +13,17 @@ def get_centered_crop_img(image, center):
 
     return image[c_x-radius:c_x+radius, c_y-radius:c_y+radius]
 
-def distance(p1: Tuple[int, int], p2: Tuple[int, int]) -> float:
-    # Convert tuples to numpy arrays
-    p1_np = np.array(p1)
-    p2_np = np.array(p2)
-    
-    # Calculate the Euclidean distance
-    return np.linalg.norm(p1_np - p2_np)
+def distance(a, b):
+    """
+    Calculates the Euclidean distance between two points.
+
+    Args:
+        a: A numpy array or tuple representing the first point.
+        b: A numpy array or tuple representing the second point.
+
+    Returns:
+        The Euclidean distance between point a and point b.
+    """
+    c = np.subtract(a, b)
+
+    return np.linalg.norm(c)
