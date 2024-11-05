@@ -15,7 +15,6 @@ class PolarRepresentation:
                  radial_range: Tuple[float, float] = (0, 1),
                  angular_range: Tuple[float, float] = (0, 359),
                  
-                 angular_mask_getter: IAngularMask = MeanAngularMask,
                  polar_transformer: PolarTransformation = CVPolarTransformation):
         
         self._check_radial_range(radial_range)
@@ -24,7 +23,6 @@ class PolarRepresentation:
         self._edp = edp
 
         self._polar_transformer = polar_transformer()
-        self._angular_mask_getter = angular_mask_getter()
 
         self._relative_radial_start = radial_range[0]
         self._relative_radial_end = radial_range[1]
@@ -46,6 +44,18 @@ class PolarRepresentation:
         self._angular_mask = None
 
     def _check_radial_range(self, radial_range):
+        """
+        Checks if the given radial range is valid.
+
+        Raises a ValueError if any of the conditions are not met:
+
+        - relative_radial_start must be greater than zero.
+        - relative_radial_end must be less than one.
+        - relative_radial_end must be greater than relative_radial_start.
+
+        Parameters:
+        radial_range (Tuple[float, float]): Radial range to check.
+        """
         start, end = radial_range
 
         if start<0:
@@ -161,13 +171,6 @@ class PolarRepresentation:
                 full_angular_mask[self._start_angle_index:],
                 full_angular_mask[:self._end_angle_index]
             ])
-
-    def set_angular_mask_params(self, cyclic_shift: float = None, angular_range_expansion: float = None):
-        new_mask_getter = MeanAngularMask(angular_range_expansion=angular_range_expansion, cyclic_shift=cyclic_shift)
-        if new_mask_getter != self._angular_mask_getter:
-            self._angular_mask_getter = new_mask_getter
-            self._compute_angular_mask()
-
 
     @property
     def polar_image(self):

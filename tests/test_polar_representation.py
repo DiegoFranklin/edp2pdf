@@ -28,7 +28,6 @@ def test_initialization(mock_edp):
     polar_representation = PolarRepresentation(edp=edp)
 
     assert isinstance(polar_representation._polar_transformer, CVPolarTransformation)
-    assert isinstance(polar_representation._angular_mask_getter, MeanAngularMask)
 
     assert polar_representation._relative_radial_start == 0
     assert polar_representation._relative_radial_end == 1
@@ -200,14 +199,6 @@ def test_angular_range_setter(mock_edp):
     polar_representation.angular_range = (10, 350)
     assert polar_representation._start_angle == 10
     assert polar_representation._end_angle == 350
-
-
-def test_angular_mask_params(mock_edp):
-    """Test setting the angular mask parameters"""
-    polar_representation = PolarRepresentation(edp=mock_edp)
-
-    polar_representation.set_angular_mask_params(cyclic_shift=10, angular_range_expansion=5)
-    assert isinstance(polar_representation._angular_mask_getter, MeanAngularMask)
 
 
 def test_theta_property(mock_edp):
