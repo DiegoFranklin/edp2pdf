@@ -29,10 +29,10 @@ def test_initialization(mock_edp):
 
     assert isinstance(polar_representation._polar_transformer, CVPolarTransformation)
 
-    assert polar_representation._relative_radial_start == 0
-    assert polar_representation._relative_radial_end == 1
-    assert polar_representation._start_angle == 0
-    assert polar_representation._end_angle == 359
+    assert polar_representation._relative_radial_range[0] == 0
+    assert polar_representation._relative_radial_range[1] == 1
+    assert polar_representation._angular_range[0] == 0
+    assert polar_representation._angular_range[1] == 359
 
     assert polar_representation._polar_image is None
     assert polar_representation._radius_space is None
@@ -110,44 +110,44 @@ def test_radial_index_computation(mock_edp):
     """Test radial index behavior"""
     polar_representation = PolarRepresentation(edp=mock_edp)
 
-    assert polar_representation._start_radial_index is None
-    assert polar_representation._end_radial_index is None
+    assert polar_representation._radial_indices[0] is None
+    assert polar_representation._radial_indices[1] is None
 
     polar_representation._compute_radial_index()
 
     # Verify if the attributes are populated
-    assert polar_representation._start_radial_index is not None
-    assert polar_representation._end_radial_index is not None
+    assert polar_representation._radial_indices[0] is not None
+    assert polar_representation._radial_indices[1] is not None
 
     # Check types
-    assert isinstance(polar_representation._start_radial_index, int)
-    assert isinstance(polar_representation._end_radial_index, int)
+    assert isinstance(polar_representation._radial_indices[0], int)
+    assert isinstance(polar_representation._radial_indices[1], int)
 
     # Check they don't exceed bounds
-    assert polar_representation._start_radial_index >= 0
-    assert polar_representation._end_radial_index <= polar_representation._full_radius_space.shape[0]
+    assert polar_representation._radial_indices[0] >= 0
+    assert polar_representation._radial_indices[1] <= polar_representation._full_radius_space.shape[0]
 
 
 def test_angular_index_computation(mock_edp):
     """Test angular index behavior"""
     polar_representation = PolarRepresentation(edp=mock_edp)
 
-    assert polar_representation._start_angle_index is None
-    assert polar_representation._end_angle_index is None
+    assert polar_representation._angular_indices[0] is None
+    assert polar_representation._angular_indices[1] is None
 
     polar_representation._compute_angular_index()
 
     # Verify if the attributes are populated
-    assert polar_representation._start_angle_index is not None
-    assert polar_representation._end_angle_index is not None
+    assert polar_representation._angular_indices[0] is not None
+    assert polar_representation._angular_indices[1] is not None
 
     # Check types
-    assert isinstance(polar_representation._start_angle_index, int)
-    assert isinstance(polar_representation._end_angle_index, int)
+    assert isinstance(polar_representation._angular_indices[0], int)
+    assert isinstance(polar_representation._angular_indices[1], int)
 
     # Check they don't exceed bounds
-    assert polar_representation._start_angle_index >= 0
-    assert polar_representation._end_angle_index < polar_representation._full_theta_space.shape[0]
+    assert polar_representation._angular_indices[0] >= 0
+    assert polar_representation._angular_indices[1] < polar_representation._full_theta_space.shape[0]
 
 
 def test_polar_image_computation(mock_edp):
@@ -181,8 +181,8 @@ def test_radial_range_setter(mock_edp):
     polar_representation = PolarRepresentation(edp=mock_edp)
 
     polar_representation.radial_range = (0.1, 0.9)
-    assert polar_representation._relative_radial_start == 0.1
-    assert polar_representation._relative_radial_end == 0.9
+    assert polar_representation._relative_radial_range[0] == 0.1
+    assert polar_representation._relative_radial_range[1] == 0.9
 
     with pytest.raises(ValueError):
         polar_representation.radial_range = (-0.1, 0.9)
@@ -197,8 +197,8 @@ def test_angular_range_setter(mock_edp):
     polar_representation = PolarRepresentation(edp=mock_edp)
 
     polar_representation.angular_range = (10, 350)
-    assert polar_representation._start_angle == 10
-    assert polar_representation._end_angle == 350
+    assert polar_representation._angular_range[0] == 10
+    assert polar_representation._angular_range[1] == 350
 
 
 def test_theta_property(mock_edp):
