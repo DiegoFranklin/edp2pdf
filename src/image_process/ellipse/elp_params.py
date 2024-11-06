@@ -131,16 +131,23 @@ class EllipseParams:
 
         return amplitude * np.cos(2 * (np.pi / 180 * thetas - (np.pi / 180) * phase))
     
+    def _eccentricity(self, amplitude):
+        return np.sqrt(1 - (1 / amplitude))
+    
     def measure_ellipse_params(self) -> Tuple[float, float]:
+        
         """
-        Measures the ellipse parameters by fitting a cosine model to the azimuthal scan data.
+        Measure the parameters of an ellipse from a diffraction pattern.
 
-        This method performs an azimuthal scan to obtain valid theta values and their corresponding
-        divergences. It then fits a cosine function to the divergences to determine the amplitude and phase
-        of the ellipse. The amplitude is adjusted by adding 1, and the phase is kept within the range of 0 to 90 degrees.
+        This method performs an azimuthal scan to obtain valid theta values 
+        and their corresponding divergences. It then fits a cosine function 
+        to these divergences to extract the ellipse parameters, specifically 
+        the eccentricity and orientation.
 
         Returns:
-            Tuple[float, float]: A tuple containing the amplitude (float) and phase (float) of the fitted cosine model.
+            Tuple[float, float]: A dictionary containing:
+                - 'eccentricity': The eccentricity of the ellipse.
+                - 'orientation': The orientation angle of the ellipse in degrees.
         """
         valid_theta_space, divergences = self._azimuthal_scan()
         
@@ -149,6 +156,9 @@ class EllipseParams:
         params, _ = curve_fit(EllipseParams._cos, valid_theta_space, divergences, bounds=bounds)
 
         amplitude, phase = 1 + params[0], params[1] % 90
+
+        params = {'eccentricity': self._eccentricity(amplitude),
+                  'orientation': phase}
         
-        return amplitude, phase
+        return params
 
