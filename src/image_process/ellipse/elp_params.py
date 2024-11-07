@@ -131,9 +131,6 @@ class EllipseParams:
 
         return amplitude * np.cos(2 * (np.pi / 180 * thetas - (np.pi / 180) * phase))
     
-    def _eccentricity(self, amplitude):
-        return np.sqrt(1 - (1 / amplitude))
-    
     def measure_ellipse_params(self) -> Tuple[float, float]:
         
         """
@@ -142,22 +139,32 @@ class EllipseParams:
         This method performs an azimuthal scan to obtain valid theta values 
         and their corresponding divergences. It then fits a cosine function 
         to these divergences to extract the ellipse parameters, specifically 
-        the eccentricity and orientation.
+        the axis ratio and orientation.
 
         Returns:
             Tuple[float, float]: A dictionary containing:
-                - 'eccentricity': The eccentricity of the ellipse.
+                - 'axis_ratio': The ratio between the semi-major and semi-minor axes.
                 - 'orientation': The orientation angle of the ellipse in degrees.
         """
         valid_theta_space, divergences = self._azimuthal_scan()
+
         
         bounds = ((0, -np.inf), (np.inf, np.inf))
 
         params, _ = curve_fit(EllipseParams._cos, valid_theta_space, divergences, bounds=bounds)
 
-        amplitude, phase = 1 + params[0], params[1] % 90
+        amplitude, phase = 1 + params[0], params[1] % 180
 
-        params = {'eccentricity': self._eccentricity(amplitude),
+        import matplotlib.pyplot as plt
+        from scipy import signal
+
+        plt.scatter(valid_theta_space, divergences)
+        plt.plot(valid_theta_space, EllipseParams._cos(valid_theta_space, *params))
+        plt.show()
+
+        env_mean = 1 + np.mean(np.abs(signal.hilbert(divergences)))
+
+        params = {'axis_ratio': (amplitude + env_mean) / 2,
                   'orientation': phase}
         
         return params
