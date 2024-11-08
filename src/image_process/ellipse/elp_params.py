@@ -154,13 +154,8 @@ class EllipseParams:
         params, _ = curve_fit(EllipseParams._cos, valid_theta_space, divergences, bounds=bounds)
 
         amplitude, phase = 1 + params[0], params[1] % 180
-
-        import matplotlib.pyplot as plt
+        
         from scipy import signal
-
-        plt.scatter(valid_theta_space, divergences)
-        plt.plot(valid_theta_space, EllipseParams._cos(valid_theta_space, *params))
-        plt.show()
 
         env_mean = 1 + np.mean(np.abs(signal.hilbert(divergences)))
 
