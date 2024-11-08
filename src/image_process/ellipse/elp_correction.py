@@ -51,19 +51,17 @@ class Scale(AffineTransformation):
 
 class CompositeTransform(AffineTransformation):
     def __init__(self, center: Tuple[int, int], angle: float, axis_ratio: float):
-        # Initial rotation
-        rotation_matrix_1 = cv2.getRotationMatrix2D(center, angle, 1)
-        
-        # Scaling
+        rotation_angle = np.radians(angle)
+        rotation_matrix = np.array([[np.cos(rotation_angle), -np.sin(rotation_angle)],
+                                    [np.sin(rotation_angle), np.cos(rotation_angle)]], dtype=np.float32)
+ 
         scale_x = np.sqrt(axis_ratio)
         scale_y = 1 / np.sqrt(axis_ratio)
-        scaling_matrix = np.array([[scale_x, 0, 0], [0, scale_y, 0]], dtype=np.float32)
+        scaling_matrix = np.array([[scale_x, 0], [0, scale_y]], dtype=np.float32)
+    
+        combined_matrix = rotation_matrix @ scaling_matrix @ np.linalg.inv(rotation_matrix)
         
-        # Inverse rotation
-        rotation_matrix_2 = cv2.getRotationMatrix2D(center, -angle, 1)
-        
-        # Combine transformations
-        combined_matrix = np.dot(rotation_matrix_2, np.dot(scaling_matrix, rotation_matrix_1))
+        combined_matrix = np.pad(combined_matrix, ((0, 0), (0, 1)), mode='constant', constant_values=0)
         
         super().__init__(combined_matrix)
 
