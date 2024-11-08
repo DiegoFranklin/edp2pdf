@@ -164,7 +164,7 @@ class EllipseParams:
 
         env_mean = 1 + np.mean(np.abs(signal.hilbert(divergences)))
 
-        params = {'axis_ratio': (amplitude + env_mean) / 2,
+        params = {'axis_ratio': env_mean,
                   'orientation': phase}
         
         return params
