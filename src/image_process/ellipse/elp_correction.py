@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Tuple, List, Dict
 
 from src.image_process.utils import ImagePadder
@@ -30,40 +30,63 @@ class ReversePad(TransformationStep):
 
 class AffineTransformation(TransformationStep):
     def __init__(self, matrix: np.ndarray):
-        self.matrix = matrix  # Matrix is publicly accessible now
+        self._matrix = matrix 
 
     def execute(self, data: np.ndarray) -> np.ndarray:
         height, width = data.shape
-        transformed_image = cv2.warpAffine(data, self.matrix, (width, height))
+        transformed_image = cv2.warpAffine(data, self.matrix[:-1,:], (width, height))
         return transformed_image
+    
+    @property
+    def matrix(self) -> np.ndarray:
+        if self._matrix is None:
+            raise ValueError("Matrix is not initialized.")
+        return self._matrix
 
 class Rotate(AffineTransformation):
-    def __init__(self, angle: float, center: Tuple[int, int]):
-        rotation_matrix = cv2.getRotationMatrix2D(center, angle, 1)
+    def __init__(self, angle: float):
+        rotation_matrix = Rotate.compute_rotation_matrix(angle)
         super().__init__(rotation_matrix)
+    
+    @staticmethod
+    def compute_rotation_matrix(angle: float) -> np.ndarray:
+        rotation_angle = np.radians(angle)
+        rotation_matrix = np.array([[np.cos(rotation_angle), -np.sin(rotation_angle),0],
+                                    [np.sin(rotation_angle), np.cos(rotation_angle), 0],
+                                    [0,                      0,                      1]], dtype=np.float32)
+        
+        return rotation_matrix
 
 class Scale(AffineTransformation):
-    def __init__(self, axis_ratio: float, center: Tuple[int, int]):
+    def __init__(self, axis_ratio: float):
         scale_x = np.sqrt(axis_ratio)
         scale_y = 1 / np.sqrt(axis_ratio)
-        scaling_matrix = np.array([[scale_x, 0, 0], [0, scale_y, 0]], dtype=np.float32)
-        super().__init__(scaling_matrix)
 
-class CompositeTransform(AffineTransformation):
-    def __init__(self, center: Tuple[int, int], angle: float, axis_ratio: float):
-        rotation_angle = np.radians(angle)
-        rotation_matrix = np.array([[np.cos(rotation_angle), -np.sin(rotation_angle)],
-                                    [np.sin(rotation_angle), np.cos(rotation_angle)]], dtype=np.float32)
- 
-        scale_x = np.sqrt(axis_ratio)
-        scale_y = 1 / np.sqrt(axis_ratio)
-        scaling_matrix = np.array([[scale_x, 0], [0, scale_y]], dtype=np.float32)
+        scaling_matrix = Scale.compute_scale_matrix(scale_x, scale_y)
+        super().__init__(scaling_matrix)
     
-        combined_matrix = rotation_matrix @ scaling_matrix @ np.linalg.inv(rotation_matrix)
+    @staticmethod
+    def compute_scale_matrix(scale_x: float, scale_y: float) -> np.ndarray:
+        scaling_matrix = np.array([[scale_x, 0, 0],
+                                   [0, scale_y, 0],
+                                   [0, 0,       1]], dtype=np.float32)
         
-        combined_matrix = np.pad(combined_matrix, ((0, 0), (0, 1)), mode='constant', constant_values=0)
-        
+        return scaling_matrix
+
+
+class ComposedTransform(AffineTransformation):
+    def __init__(self, affine_transformations: List[AffineTransformation]):
+    
+        combined_matrix = ComposedTransform._combine_transformations(affine_transformations)
+
         super().__init__(combined_matrix)
+
+    @staticmethod
+    def _combine_transformations(transformations: List[AffineTransformation]):
+        combined_matrix = np.eye(3)
+        for transformation in transformations:
+            combined_matrix = combined_matrix @ transformation.matrix
+        return combined_matrix
 
 class CorrectionPipeline:
     def __init__(self):
@@ -76,21 +99,27 @@ class CorrectionPipeline:
         for step in self.steps:
             data = step.execute(data)
         return data
-
-    def get_transformation_matrices(self) -> List[np.ndarray]:
-        """Returns a list of transformation matrices for each affine step."""
-        return [step.matrix for step in self.steps if isinstance(step, AffineTransformation)]
     
 def correct_ellipse(edp: eDiffractionPattern, ellipse_params: Dict[str, float]) -> np.ndarray:
+
     pipeline = CorrectionPipeline()
 
-    # Step 1: Pad
     pipeline.add_step(Pad(edp.center))
 
-    # Step 2: Composite Transform (rotation + scaling + inverse rotation)
-    pipeline.add_step(CompositeTransform(edp.center, ellipse_params['orientation'], ellipse_params['axis_ratio']))
+    affine_transformations = []
 
-    # Step 3: Reverse Pad
+    rotation = Rotate(ellipse_params['orientation'])
+    affine_transformations.append(rotation)
+
+    scaling = Scale(ellipse_params['axis_ratio'])
+    affine_transformations.append(scaling)
+
+    inverse_rotation = Rotate(-ellipse_params['orientation'])
+    affine_transformations.append(inverse_rotation)
+
+    pipeline.add_step(ComposedTransform(affine_transformations))
+
+
     pipeline.add_step(ReversePad())
     
     result = pipeline.execute(edp.data)
