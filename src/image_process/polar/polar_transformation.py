@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from typing import Tuple
 
-from ..utils import distance
+from ..utils import max_radius
 
 class PolarTransformation(ABC):
     @abstractmethod
@@ -21,15 +21,7 @@ class CVPolarTransformation(PolarTransformation):
     def _compute_max_radius(self, data_shape: Tuple[int, int], center: Tuple[int, int]) -> None:
 
         if self._max_radius is None:
-            corners = [
-                (0, 0),  
-                (0, data_shape[1] - 1),  
-                (data_shape[0] - 1, 0), 
-                (data_shape[0] - 1, data_shape[1] - 1)  
-            ]
-
-            # Calculate the maximum distance from the center to the corners
-            self._max_radius = np.max([distance(center, corner) for corner in corners])
+            self._max_radius = max_radius(data_shape, center)
 
     def _compute_polar_image_size(self, data_shape: Tuple[int, int], center: Tuple[int, int]) -> None:
         if self._polar_image_size is None:
