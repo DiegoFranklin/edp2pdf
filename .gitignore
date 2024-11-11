@@ -21,3 +21,4 @@ data/
 benchmark/
 .vscode
 enviroment_linux.yml
+test_notebook.ipynb

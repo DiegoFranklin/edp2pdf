@@ -100,6 +100,30 @@ class EllipseParams:
 
         return result.x
     
+    def _build_probe_angles(self, num_points: int = 10) -> np.ndarray:
+ 
+        """
+        Build probe angles from the valid theta space.
+
+        This method constructs an angular mask and extracts valid theta
+        values based on the mask. It then selects probe angles at regular
+        intervals specified by the number of points.
+
+        Args:
+            num_points (int): The number of points to sample from the valid
+                                theta space.
+
+        Returns:
+            np.ndarray: An array of probe angles sampled from the valid theta
+                        space at the specified interval.
+        """
+        complete_angular_mask: np.ndarray = self._construct_angular_mask()
+        valid_theta_space: np.ndarray = self._polar_representation.theta[np.where(complete_angular_mask)]
+
+        probe_angles = valid_theta_space[::num_points] 
+        
+        return probe_angles
+    
     def _azimuthal_scan(self) -> Tuple[np.ndarray, np.ndarray]:
         """
         Perform an azimuthal scan to obtain valid theta values and their corresponding
@@ -109,13 +133,12 @@ class EllipseParams:
             Tuple[np.ndarray, np.ndarray]: A tuple containing the valid theta values and
                 their corresponding divergences.
         """
-        complete_angular_mask: np.ndarray = self._construct_angular_mask()
-        valid_theta_space: np.ndarray = self._polar_representation.theta[np.where(complete_angular_mask)]
+        probe_angles: np.ndarray = self._build_probe_angles()
         divergences: List[float] = []
 
         rotational_average: RotationalAverage = RotationalAverage(self._polar_representation)
 
-        for angle in valid_theta_space:
+        for angle in probe_angles:
             pk, qk = self._extract_orthogonal_curves(angle, rotational_average)
 
             pp_pk: np.ndarray = taper_and_filter(pk)
@@ -124,7 +147,7 @@ class EllipseParams:
             divergence: float = EllipseParams._elastic_divergence(pp_pk, pp_qk)
             divergences.append(divergence)
 
-        return valid_theta_space, np.asarray(divergences) - 1
+        return probe_angles, np.asarray(divergences) - 1
     
     @staticmethod
     def _cos(thetas: np.ndarray, amplitude: float, phase: float) -> np.ndarray:
