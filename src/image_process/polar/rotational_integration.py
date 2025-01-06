@@ -7,7 +7,7 @@ class RotationalIntegration:
 
     def __init__(self, polar_representation: PolarRepresentation):
         self._polar_representation = polar_representation
-        self.extended_polar_mask = self._construct_extended_polar_mask()
+        self.extended_polar_mask = None
 
     def _construct_extended_polar_mask(self) -> np.ndarray:
 
@@ -48,6 +48,9 @@ class RotationalIntegration:
                                           start_angle: float,
                                           end_angle: float,
                                           method: str = 'mean') -> np.ndarray:
+
+        if self.extended_polar_mask is None:
+            self.extended_polar_mask = self._construct_extended_polar_mask()
         
         self._polar_representation.angular_range = (start_angle, end_angle)
 
