@@ -47,7 +47,7 @@ class PolarRepresentation:
         
         self._check_radial_range(radial_range)
 
-        self._edp = edp
+        self.edp = edp
 
         self._polar_transformer = polar_transformer()
 
@@ -91,7 +91,7 @@ class PolarRepresentation:
     # ======== Full data computation
     def _compute_full_polar_image(self):
         if self._full_polar_image is None:  
-            self._full_polar_image = self._polar_transformer.transform(self._edp.data, self._edp.center)
+            self._full_polar_image = self._polar_transformer.transform(self.edp.data, self.edp.center)
 
     def _compute_full_radius_space(self):
         self._compute_full_polar_image()
@@ -234,7 +234,7 @@ class PolarRepresentation:
         start_r, _ = self._radial_indices
         start_a, end_a = self._angular_indices
 
-        full_angular_mask = self._polar_transformer.transform(self._edp.mask, self._edp.center)[:, start_r]
+        full_angular_mask = self._polar_transformer.transform(self.edp.mask, self.edp.center)[:, start_r]
 
         if start_a <= end_a:
             self._angular_mask = full_angular_mask[start_a:end_a]
