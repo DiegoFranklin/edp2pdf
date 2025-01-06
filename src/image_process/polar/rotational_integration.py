@@ -25,10 +25,13 @@ class RotationalIntegration:
         full_polar = PolarRepresentation(full_edp)
         full_polar.radial_range = self._polar_representation.radial_range
 
-        lock = 900
-
         polar_mask = mask_polar.polar_image.copy()
+        lock = np.argmax(np.sum(polar_mask, axis=0))
+        lock = round(lock * 0.9)
+
         last_angular_mask = polar_mask[:,lock - 1]
+        for i in range(0, round(lock * 0.05)):
+            last_angular_mask = np.logical_or(last_angular_mask, polar_mask[:,lock - 1 - i])
 
         full_angular_mask = np.tile(last_angular_mask, (full_polar.polar_image.shape[1], 1)).T
 
@@ -41,6 +44,10 @@ class RotationalIntegration:
         polar_full[:,:lock] = 0
 
         final_mask = np.logical_or(polar_mask, polar_full)
+
+        import matplotlib.pyplot as plt
+        plt.imshow(final_mask)
+        plt.show()
 
         return final_mask
 
