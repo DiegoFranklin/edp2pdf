@@ -1,6 +1,6 @@
 from src.image_process.diffraction_pattern import eDiffractionPattern
 from src.image_process.polar.polar_representation import PolarRepresentation
-from src.image_process.polar.rotational_average import RotationalAverage
+from src.image_process.polar.rotational_integration import RotationalIntegration
 from src.image_process.mask.utils import expand_hole, compute_cyclic_shift
 
 from src.signal_process.utils import cosine_distance, shrink_signal, taper_and_filter
@@ -9,6 +9,7 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 from scipy.optimize import curve_fit
 from typing import Tuple, List
+from scipy import signal
 
 class EllipseParams:
     def __init__(self, edp: eDiffractionPattern) -> None:
@@ -44,7 +45,7 @@ class EllipseParams:
         return compute_cyclic_shift(angular_mask, self._polar_representation.theta, -90)
 
     def _extract_orthogonal_curves(
-        self, angle: float, rotational_average: RotationalAverage
+        self, angle: float, rotational_average: RotationalIntegration
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Extracts two orthogonal curves from the rotational average of the
@@ -57,7 +58,7 @@ class EllipseParams:
         ----------
         angle : float
             The angle at which to extract the curves.
-        rotational_average : RotationalAverage
+        rotational_average : RotationalIntegration
             The rotational average of the diffraction pattern.
 
         Returns
@@ -71,8 +72,8 @@ class EllipseParams:
         pk_angles = (pk_angle - self._semi_angle_range, pk_angle + self._semi_angle_range)
         qk_angles = (qk_angle - self._semi_angle_range, qk_angle + self._semi_angle_range)
 
-        pk = rotational_average.get_rotational_average(*pk_angles)
-        qk = rotational_average.get_rotational_average(*qk_angles)
+        pk = rotational_average.get_rotational_integration(*pk_angles)
+        qk = rotational_average.get_rotational_integration(*qk_angles)
 
         return pk, qk
         
@@ -136,7 +137,7 @@ class EllipseParams:
         probe_angles: np.ndarray = self._build_probe_angles()
         divergences: List[float] = []
 
-        rotational_average: RotationalAverage = RotationalAverage(self._polar_representation)
+        rotational_average: RotationalIntegration = RotationalIntegration(self._polar_representation)
 
         for angle in probe_angles:
             pk, qk = self._extract_orthogonal_curves(angle, rotational_average)
@@ -177,8 +178,7 @@ class EllipseParams:
         params, _ = curve_fit(EllipseParams._cos, valid_theta_space, divergences, bounds=bounds)
 
         amplitude, phase = 1 + params[0], params[1] % 180
-        
-        from scipy import signal
+    
 
         env_mean = 1 + np.mean(np.abs(signal.hilbert(divergences)))
 
