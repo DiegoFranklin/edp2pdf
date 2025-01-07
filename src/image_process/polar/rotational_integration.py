@@ -45,10 +45,6 @@ class RotationalIntegration:
 
         final_mask = np.logical_or(polar_mask, polar_full)
 
-        import matplotlib.pyplot as plt
-        plt.imshow(final_mask)
-        plt.show()
-
         return final_mask
 
     def get_masked_rotational_integration(self,
