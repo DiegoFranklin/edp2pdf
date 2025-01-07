@@ -37,20 +37,14 @@ def euclidean_distance(a: np.ndarray, b: np.ndarray) -> float:
     Calculates the Euclidean distance between two points a and b.
 
     Args:
-        a (np.ndarray): The first point.
-        b (np.ndarray): The second point.
+        a
+        b 
 
     Returns:
         float: The Euclidean distance between a and b.
 
-    Raises:
-        TypeError: If `a` or `b` are not numpy arrays.
-        ValueError: If `a` and `b` do not have the same shape.
     """
-    if not isinstance(a, np.ndarray) or not isinstance(b, np.ndarray):
-        raise TypeError("Inputs `a` and `b` must be numpy arrays.")
-    if a.shape != b.shape:
-        raise ValueError("Inputs `a` and `b` must have the same shape.")
+
 
     c = np.subtract(a, b)
     return np.linalg.norm(c)

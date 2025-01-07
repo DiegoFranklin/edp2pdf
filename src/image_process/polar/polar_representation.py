@@ -19,6 +19,7 @@ class PolarRepresentation:
         radius (np.ndarray): The radius space of the polar representation.
         theta (np.ndarray): The theta space of the polar representation.
         angular_mask (np.ndarray): The angular mask of the polar representation.
+        polar_mask (np.ndarray): The polar mask of the polar representation.
     """
 
     def __init__(
@@ -66,6 +67,8 @@ class PolarRepresentation:
         self._polar_image = None
         self._radius_space = None
         self._theta_space = None
+        self._extended_polar_mask = None
+        self._polar_mask = None
         self._angular_mask = None
 
     def _check_radial_range(self, radial_range: Tuple[float, float]):
@@ -121,6 +124,52 @@ class PolarRepresentation:
         DEFAULT_MAX_ANGLE = 360
         if self._full_theta_space is None:
             self._full_theta_space = np.linspace(0, DEFAULT_MAX_ANGLE - 1, self._full_polar_image.shape[0], endpoint=False)
+
+    def _compute_extended_polar_mask(self):
+        """Computes the extended polar mask for rotational integration."""
+        if self._extended_polar_mask is None:
+            if self.edp.mask is None:
+                raise ValueError("EDP does not have a mask.")
+            try:
+                mask_edp = eDiffractionPattern(
+                    data=self.edp.mask,
+                    center=self.edp.center,
+                    mask=self.edp.mask,
+                )
+
+                mask_polar = PolarRepresentation(mask_edp)
+                mask_polar.radial_range = self._relative_radial_range
+
+                full_edp = eDiffractionPattern(
+                    data=np.ones_like(self.edp.mask),
+                    center=self.edp.center,
+                    mask=np.ones_like(self.edp.mask),
+                )
+
+                full_polar = PolarRepresentation(full_edp)
+                full_polar.radial_range = self._relative_radial_range
+
+                polar_mask = mask_polar.polar_image.copy()
+                lock = np.argmax(np.sum(polar_mask, axis=0))
+                lock = round(lock * 0.9)
+
+                last_angular_mask = polar_mask[:, lock - 1]
+                for i in range(0, round(lock * 0.05)):
+                    last_angular_mask = np.logical_or(last_angular_mask, polar_mask[:, lock - 1 - i])
+
+                full_angular_mask = np.tile(last_angular_mask, (full_polar.polar_image.shape[1], 1)).T
+
+                polar_mask[:, lock:] = 0
+
+                polar_full = full_polar.polar_image.copy()
+                polar_full = np.logical_and(polar_full, full_angular_mask)
+                polar_full[:, :lock] = 0
+
+                final_mask = np.logical_or(polar_mask, polar_full)
+
+                self._extended_polar_mask = final_mask
+            except Exception as e:
+                raise RuntimeError(f"Failed to construct extended polar mask: {e}")
 
     def _compute_radial_index(self):
         """
@@ -225,15 +274,30 @@ class PolarRepresentation:
         else:
             self._polar_image = np.concatenate([radial_cropped_polar_image[start_a:, :], radial_cropped_polar_image[:end_a, :]])
 
-    def _compute_angular_mask(self):
-        """Computes the angular mask for the current polar representation."""
+    def _compute_polar_mask(self):
+        """Computes the polar mask for the current polar representation."""
+        self._compute_extended_polar_mask()
         self._compute_radial_index()
         self._compute_angular_index()
-        self._compute_polar_image()
+        start_r, end_r = self._radial_indices
+        start_a, end_a = self._angular_indices
+
+        full_polar_mask = self._extended_polar_mask[:, start_r:end_r]
+
+        if start_a <= end_a:
+            self._polar_mask = full_polar_mask[start_a:end_a, :]
+        else:
+            self._polar_mask = np.concatenate([full_polar_mask[start_a:, :], full_polar_mask[:end_a, :]])
+
+    def _compute_angular_mask(self):
+        """Computes the angular mask for the current polar representation."""
+        self._compute_extended_polar_mask()
+        self._compute_radial_index()
+        self._compute_angular_index()
         start_r, _ = self._radial_indices
         start_a, end_a = self._angular_indices
 
-        full_angular_mask = self._polar_transformer.transform(self.edp.mask, self.edp.center)[:, start_r]
+        full_angular_mask = self._extended_polar_mask[:, start_r]
 
         if start_a <= end_a:
             self._angular_mask = full_angular_mask[start_a:end_a]
@@ -257,6 +321,19 @@ class PolarRepresentation:
         """Gets the theta space of the polar representation."""
         self._compute_theta_space()
         return self._theta_space
+
+    @property
+    def polar_mask(self) -> np.ndarray:
+        """
+        Gets the polar mask of the polar representation.
+
+        The polar mask is derived from the extended polar mask and is cropped to the current radial and angular ranges.
+
+        Returns:
+            np.ndarray: The polar mask as a binary numpy array.
+        """
+        self._compute_polar_mask()
+        return self._polar_mask
 
     @property
     def angular_mask(self) -> np.ndarray:
