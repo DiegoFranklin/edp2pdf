@@ -1,0 +1,131 @@
+image_process:
+  pre_process:
+    MedianFilter:
+      kernel_size: 3  # Default kernel size for the median filter
+
+    GaussianBlur:
+      sigma: 3.0  # Default standard deviation for the Gaussian blur
+
+    Resizer:
+      scaling_factor:  # Scaling factor for resizing (no default value, must be provided)
+      interpolation_order:
+        upscaling: 3  # Cubic interpolation for upscaling
+        downscaling: 1  # Linear interpolation for downscaling
+
+    PreProcessPipe:
+      pre_processors: []  # Default empty list of preprocessors
+  
+  utils:
+    ImagePadder:
+      mode: "linear_ramp"  # Default padding mode for the image padder
+  
+  edp_center:
+    AutoCorrelation:
+      padding_constants:
+        mask_padding_value: 1.0  # Constant value used for padding the mask
+
+    center_optimization:
+      distance_metrics:
+        metrics_map:
+          mean_squared_error: mean_squared_error  # Metric function for mean squared error
+          manhattan: manhattan  # Metric function for Manhattan distance
+          cosine: cosine  # Metric function for cosine distance
+          jaccard_distance: jaccard_distance  # Metric function for Jaccard distance
+
+        jaccard_distance:
+          scaling_factor: 255  # Scaling factor used to normalize arrays for Jaccard distance
+          dtype: 'uint8'  # Data type used for Jaccard distance calculation
+
+      opt_funcs:
+        OptFunc:
+          default_mask_value: 1.0  # Default value used for the mask when no mask is provided
+          distance_metric: 'manhattan'  # Default distance metric for optimization
+          lru_cache_size: 128  # Maximum size of the LRU cache for memoization
+
+        Distance:
+          distance_metric: 'manhattan'  # Default distance metric for the Distance class
+          lru_cache_size: 128  # Maximum size of the LRU cache for memoization
+        
+        optimization:
+          optimize_center:
+            default_initial_guess_divisor: 2.0  # Divisor used to calculate the default initial guess (center of the data shape)
+            default_options:
+              xtol: 1e-8  # Default tolerance for optimization
+              disp: False  # Default display option for optimization
+            optimization_method: 'trust-constr'  # Optimization method used in `scipy.optimize.minimize`
+
+  ellipse:
+    elp_params:
+      EllipseParams:
+        radial_range: [0.06, 0.6]  # Radial range for polar representation
+        semi_angle_range: 10  # Semi-angle range for angular mask expansion
+        num_points: 10  # Number of points to sample from the valid theta space
+        cosine_bounds:  # Bounds for curve fitting in the cosine function
+          lower: [0, -inf]
+          upper: [inf, inf]
+        cosine_amplitude_offset: 1  # Offset added to the amplitude in the cosine function
+        phase_modulus: 180  # Modulus value for phase normalization
+        env_mean_offset: 1  # Offset added to the mean of the Hilbert transform envelope
+
+  mask:
+    mask_getters:
+      RecursiveMask:
+        target_ratio: 0.25  # Target ratio of masked pixels to total pixels
+        mean_reduction_factor: 100  # Factor by which the mean is reduced in each iteration
+        dilate_iterations: 2  # Number of iterations for dilation in the morphological routine
+        dilate_kernel_size: 2  # Kernel size for dilation in the morphological routine
+        erode_iterations: 20  # Number of iterations for erosion in the morphological routine
+        erode_kernel_size: 2  # Kernel size for erosion in the morphological routine
+        final_dilate_iterations: 5  # Number of iterations for final dilation
+        final_dilate_kernel_size: 5  # Kernel size for final dilation
+        final_erode_iterations: 15  # Number of iterations for final erosion
+        final_erode_kernel_size: 2  # Kernel size for final erosion
+
+      GaussianBlurTreshgMask:
+        sigma: 20  # Sigma for Gaussian blur
+        iterations: 10  # Number of iterations for Gaussian blur
+
+      AdaptiveTreshMask:
+        sector_size: 101  # Sector size for adaptive thresholding
+        c_param: 0  # Constant subtracted from the mean in adaptive thresholding
+
+      MeanTreshMask:
+        constant: 0.2  # Constant value to multiply the standard deviation subtracted from the mean
+    mask_ops:
+      Dilate:
+        default_iterations: 5  # Default number of iterations for dilation
+        default_kernel_size: 5  # Default kernel size for dilation
+
+      Erode:
+        default_iterations: 5  # Default number of iterations for erosion
+        default_kernel_size: 5  # Default kernel size for erosion
+    
+    utils:
+      expand_hole:
+        max_angular_range_expansion: 360  # Maximum allowed value for angular range expansion
+  
+  polar:
+    polar_representation:
+      PolarRepresentation:
+        default_radial_range: [0, 1]  # Default radial range for the polar representation
+        default_angular_range: [0, 359]  # Default angular range for the polar representation
+        default_max_angle: 360  # Default maximum angle for the theta space
+        polar_mask_lock_factor: 0.9  # Factor used to determine the lock point for the polar mask
+        polar_mask_extension_factor: 0.05  # Factor used to extend the polar mask
+    
+    polar_transformation:
+      CVPolarTransformation:
+        interpolation_method: cv2.INTER_CUBIC  # Default interpolation method for polar transformation
+        polar_image_size_factor: sqrt(pi)  # Factor used to compute the size of the polar image
+    
+    rotational_integration:
+      RotationalIntegration:
+        default_method: "mean"  # Default integration method
+        supported_methods: ["mean", "median"]  # Supported integration methods
+
+signal_process:
+  utils:
+    taper_and_filter:
+      tukey_window_alpha: 1  # Alpha parameter for the Tukey window
+      savgol_filter_window_length: 5  # Window length for the Savitzky-Golay filter
+      savgol_filter_polyorder: 3  # Polynomial order for the Savitzky-Golay filter
