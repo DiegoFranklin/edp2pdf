@@ -71,8 +71,6 @@ def bilinear_interpolation(
         raise TypeError("Input `point` must be a tuple of two floats.")
     if not isinstance(neighbors, tuple) or len(neighbors) != 4 or not all(isinstance(n, tuple) and len(n) == 2 for n in neighbors):
         raise TypeError("Input `neighbors` must be a tuple of four coordinate tuples.")
-    if not isinstance(values, tuple) or len(values) != 4 or not all(isinstance(v, (int, float)) for v in values):
-        raise TypeError("Input `values` must be a tuple of four floats.")
 
     # Extract coordinates and values
     x, y = point

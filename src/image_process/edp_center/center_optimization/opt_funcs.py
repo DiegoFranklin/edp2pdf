@@ -67,6 +67,7 @@ class OptFunc(ABC):
         Raises:
             ValueError: If the point coordinates are invalid (e.g., negative or out of bounds).
         """
+        point = tuple(point)
         if not all(isinstance(coord, (int, float)) for coord in point):
             raise ValueError("Point coordinates must be numeric.")
         if point[0] < 0 or point[1] < 0:
