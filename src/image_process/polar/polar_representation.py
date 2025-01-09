@@ -49,7 +49,6 @@ class PolarRepresentation:
             raise TypeError("Input `polar_transformer` must be a subclass of PolarTransformation.")
 
         self._check_radial_range(radial_range)
-        self._check_angular_range(angular_range)
 
         self.edp = edp
         self._polar_transformer = polar_transformer()
@@ -89,23 +88,6 @@ class PolarRepresentation:
             raise ValueError("relative_radial_end must be less than one.")
         if end < start:
             raise ValueError("relative_radial_end must be greater than relative_radial_start.")
-
-    def _check_angular_range(self, angular_range: Tuple[float, float]):
-        """
-        Checks if the given angular range is valid.
-
-        Args:
-            angular_range (Tuple[float, float]): Angular range to check.
-
-        Raises:
-            ValueError: If `angular_range` is invalid.
-        """
-        start, end = angular_range
-
-        if start < 0 or end < 0:
-            raise ValueError("Angular range values must be non-negative.")
-        if end < start:
-            raise ValueError("Angular range end must be greater than or equal to start.")
 
     def _compute_full_polar_image(self):
         """Computes the full polar image if not already computed."""
@@ -239,7 +221,6 @@ class PolarRepresentation:
             ValueError: If the new angular range is invalid.
         """
         start_angle, end_angle = range
-        self._check_angular_range(range)
 
         if (start_angle, end_angle) != self._angular_range:
             self._angular_range = (start_angle, end_angle)

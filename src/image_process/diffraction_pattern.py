@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Union
 
 
 class eDiffractionPattern:
@@ -30,7 +30,7 @@ class eDiffractionPattern:
             raise TypeError("Input `data` must be a numpy array.")
         if not isinstance(mask, np.ndarray):
             raise TypeError("Input `mask` must be a numpy array.")
-        if not isinstance(center, tuple) or len(center) != 2 or not all(isinstance(c, int) for c in center):
+        if not isinstance(center, tuple) or len(center) != 2 or not all(isinstance(c, Union[int, float]) for c in center):
             raise TypeError("Input `center` must be a tuple of two integers.")
 
         # Validate input shapes
