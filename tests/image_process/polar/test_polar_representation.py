@@ -4,6 +4,7 @@ from edp2pdf.image_process.polar.polar_transformation import CVPolarTransformati
 
 import numpy as np
 import pytest
+import cv2
 from unittest.mock import MagicMock
 import logging
 
@@ -16,8 +17,9 @@ def mock_edp():
     """Mock for eDiffractionPattern"""
     mock = MagicMock(spec=eDiffractionPattern)
     mock.data = np.ones((2048, 2048))
-    mock.mask = np.ones((2048, 2048))
     mock.center = (1024, 1024)
+    mock.mask = np.zeros((2048, 2048))
+    mock.mask = cv2.circle(mock.mask, mock.center, 500, 1, -1)
     return mock
 
 # ====================== Existing tests remain unchanged ======================
@@ -243,3 +245,16 @@ def test_polar_image_property(mock_edp):
     assert polar_image.shape[0] == polar_representation.theta.shape[0]
     assert polar_image.shape[1] == polar_representation.radius.shape[0]
 
+# Test radial range adjustment
+def test_radial_range_adjustment_berfore_and_after(mock_edp):
+    polar_representation = PolarRepresentation(edp=mock_edp)
+    assert polar_representation.polar_image.shape == polar_representation.polar_mask.shape
+
+    polar_representation.radial_range = (0.1, 0.8)
+    assert polar_representation.polar_image.shape == polar_representation.polar_mask.shape
+
+def test_radial_range_adjustment_after(mock_edp):
+    polar_representation = PolarRepresentation(edp=mock_edp)
+
+    polar_representation.radial_range = (0.1, 0.8)
+    assert polar_representation.polar_image.shape == polar_representation.polar_mask.shape
