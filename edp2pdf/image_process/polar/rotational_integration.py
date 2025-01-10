@@ -69,17 +69,21 @@ class RotationalIntegration:
                     col = polar_data[:, i]  # Extract the column (angular data for this radial bin)
                     col_mask = polar_mask[:, i]  # Extract the corresponding mask
 
-                    if method == "median":
-                        integral.append(np.median(col[col_mask == 1]))  # Apply mask and compute median
-                    elif method == "mean":
-                        integral.append(np.mean(col[col_mask == 1]))  # Apply mask and compute mean
+                    if np.sum(col_mask) == 0:
+                        integral.append(np.nan)  # If the column is empty, append NaN
+                    else:
+
+                        if method == "median":
+                            integral.append(np.nanmedian(col[col_mask == 1]))  # Apply mask and compute median
+                        elif method == "mean":
+                            integral.append(np.nanmean(col[col_mask == 1]))  # Apply mask and compute mean
 
                 return np.array(integral)
             else:
                 # Perform unmasked integration along the angular axis
                 if method == "mean":
-                    return np.mean(polar_data, axis=0)  # Mean along the angular axis
+                    return np.nanmean(polar_data, axis=0)  # Mean along the angular axis
                 elif method == "median":
-                    return np.median(polar_data, axis=0)  # Median along the angular axis
+                    return np.nanmedian(polar_data, axis=0)  # Median along the angular axis
         except Exception as e:
             raise RuntimeError(f"Failed to compute rotational integration: {e}")

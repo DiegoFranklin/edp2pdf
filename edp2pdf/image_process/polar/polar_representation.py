@@ -41,7 +41,7 @@ class PolarRepresentation:
 
         Raises:
             TypeError: If `edp` is not an instance of eDiffractionPattern or if `polar_transformer` is not a subclass of PolarTransformation.
-            ValueError: If `radial_range` or `angular_range` are invalid.
+            ValueError: If `radial_range` or are invalid.
         """
         if not isinstance(edp, eDiffractionPattern):
             raise TypeError("Input `edp` must be an instance of eDiffractionPattern.")
@@ -69,6 +69,7 @@ class PolarRepresentation:
         self._extended_polar_mask = None
         self._polar_mask = None
         self._angular_mask = None
+
 
     def _check_radial_range(self, radial_range: Tuple[float, float]):
         """
@@ -109,6 +110,7 @@ class PolarRepresentation:
 
     def _compute_extended_polar_mask(self):
         """Computes the extended polar mask for rotational integration."""
+        self._compute_full_polar_image()
         if self._extended_polar_mask is None:
             if self.edp.mask is None:
                 raise ValueError("EDP does not have a mask.")
@@ -120,7 +122,6 @@ class PolarRepresentation:
                 )
 
                 mask_polar = PolarRepresentation(mask_edp)
-                mask_polar.radial_range = self._relative_radial_range
 
                 full_edp = eDiffractionPattern(
                     data=np.ones_like(self.edp.mask),
@@ -129,7 +130,6 @@ class PolarRepresentation:
                 )
 
                 full_polar = PolarRepresentation(full_edp)
-                full_polar.radial_range = self._relative_radial_range
 
                 polar_mask = mask_polar.polar_image.copy()
                 lock = np.argmax(np.sum(polar_mask, axis=0))
