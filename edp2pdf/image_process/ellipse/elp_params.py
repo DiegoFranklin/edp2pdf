@@ -1,9 +1,9 @@
-from src.image_process.diffraction_pattern import eDiffractionPattern
-from src.image_process.polar.polar_representation import PolarRepresentation
-from src.image_process.polar.rotational_integration import RotationalIntegration
-from src.image_process.mask.utils import expand_hole, compute_cyclic_shift
+from edp2pdf.image_process.diffraction_pattern import eDiffractionPattern
+from edp2pdf.image_process.polar.polar_representation import PolarRepresentation
+from edp2pdf.image_process.polar.rotational_integration import RotationalIntegration
+from edp2pdf.image_process.mask.utils import expand_hole, compute_cyclic_shift
 
-from src.signal_process.utils import cosine_distance, shrink_signal, taper_and_filter
+from edp2pdf.signal_process.utils import cosine_distance, shrink_signal, taper_and_filter
 
 import numpy as np
 from scipy.optimize import minimize_scalar

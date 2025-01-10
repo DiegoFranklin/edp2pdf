@@ -1,6 +1,6 @@
-from src.image_process.polar.polar_representation import PolarRepresentation
-from src.image_process.diffraction_pattern import eDiffractionPattern
-from src.image_process.polar.polar_transformation import CVPolarTransformation
+from edp2pdf.image_process.polar.polar_representation import PolarRepresentation
+from edp2pdf.image_process.diffraction_pattern import eDiffractionPattern
+from edp2pdf.image_process.polar.polar_transformation import CVPolarTransformation
 
 import numpy as np
 import pytest

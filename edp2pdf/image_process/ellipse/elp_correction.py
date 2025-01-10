@@ -3,8 +3,8 @@ import numpy as np
 from abc import ABC, abstractmethod
 from typing import Tuple, List, Dict
 
-from src.image_process.utils import ImagePadder
-from src.image_process.diffraction_pattern import eDiffractionPattern
+from edp2pdf.image_process.utils import ImagePadder
+from edp2pdf.image_process.diffraction_pattern import eDiffractionPattern
 
 
 class TransformationStep(ABC):

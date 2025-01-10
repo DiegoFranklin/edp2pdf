@@ -1,7 +1,7 @@
 import numpy as np
 
 from .polar_representation import PolarRepresentation
-from src.image_process.diffraction_pattern import eDiffractionPattern
+from edp2pdf.image_process.diffraction_pattern import eDiffractionPattern
 
 
 class RotationalIntegration:

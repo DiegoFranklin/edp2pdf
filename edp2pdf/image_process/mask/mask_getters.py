@@ -4,7 +4,7 @@ import numpy as np
 from typing import List, Optional
 from scipy.ndimage import gaussian_filter
 
-import src.image_process.mask.mask_ops as mo
+import edp2pdf.image_process.mask.mask_ops as mo
 
 
 class MaskGetter(ABC):

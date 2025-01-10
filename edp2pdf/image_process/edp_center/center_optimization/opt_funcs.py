@@ -4,8 +4,8 @@ from functools import lru_cache
 import numpy as np
 import concurrent.futures
 
-from src.image_process.edp_center.utils import get_centered_crop_img, bilinear_interpolation, get_integer_neighbors
-from src.image_process.edp_center.center_optimization.distance_metrics import masked_metric_factory
+from edp2pdf.image_process.edp_center.utils import get_centered_crop_img, bilinear_interpolation, get_integer_neighbors
+from edp2pdf.image_process.edp_center.center_optimization.distance_metrics import masked_metric_factory
 
 
 class OptFunc(ABC):

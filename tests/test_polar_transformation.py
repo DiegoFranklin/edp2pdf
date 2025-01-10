@@ -1,5 +1,5 @@
-from src.image_process.polar.polar_representation import PolarRepresentation
-from src.image_process.polar.polar_transformation import CVPolarTransformation, PolarTransformation
+from edp2pdf.image_process.polar.polar_representation import PolarRepresentation
+from edp2pdf.image_process.polar.polar_transformation import CVPolarTransformation, PolarTransformation
 
 import numpy as np
 import cv2
