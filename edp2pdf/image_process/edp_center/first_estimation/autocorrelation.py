@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 from typing import Tuple
-from center_first_estimation import validate_inputs
 
 
 
@@ -9,9 +8,11 @@ def apply_mask(data: np.ndarray, mask: np.ndarray) -> np.ndarray:
     """Applies the mask to the image data."""
     return data * mask
 
-def pad_image(image: np.ndarray, target_shape: Tuple[int, int]) -> np.ndarray:
+def pad_image(image: np.ndarray,
+              target_shape: Tuple[int, int],
+              constant_values: Tuple[float, float] = (0.0, 0.0)) -> np.ndarray:
     """Pads the image to the target shape."""
-    return np.pad(image, ((0, target_shape[0]), (0, target_shape[1])))
+    return np.pad(image, ((0, target_shape[0]), (0, target_shape[1])), constant_values=constant_values)
 
 def compute_autocorrelation(data: np.ndarray, mask: np.ndarray) -> np.ndarray:
     """Computes the autocorrelation of the masked image."""
@@ -35,7 +36,6 @@ def find_center(autocorrelation: np.ndarray, data_shape: Tuple[int, int]) -> Tup
 
 def autocorrelation(data: np.ndarray, mask: np.ndarray) -> Tuple[Tuple[int, int], np.ndarray]:
     """Computes the autocorrelation of the masked image."""
-    validate_inputs(data, mask)
     autocorrelation = compute_autocorrelation(data, mask)
     ci, cj = find_center(autocorrelation, data.shape)
     return (ci, cj)
