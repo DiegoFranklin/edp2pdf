@@ -72,8 +72,6 @@ class Dilate(MaskOperation):
         """
         if not isinstance(mask_data, np.ndarray):
             raise TypeError("Input `mask_data` must be a numpy array.")
-        if mask_data.dtype != np.uint8 or not np.array_equal(np.unique(mask_data), [0, 1]):
-            raise ValueError("Input `mask_data` must be a binary mask (0s and 1s).")
         if len(mask_data.shape) != 2:
             raise ValueError("Input `mask_data` must be a 2D array.")
 
@@ -122,8 +120,6 @@ class Erode(MaskOperation):
         """
         if not isinstance(mask_data, np.ndarray):
             raise TypeError("Input `mask_data` must be a numpy array.")
-        if mask_data.dtype != np.uint8 or not np.array_equal(np.unique(mask_data), [0, 1]):
-            raise ValueError("Input `mask_data` must be a binary mask (0s and 1s).")
         if len(mask_data.shape) != 2:
             raise ValueError("Input `mask_data` must be a 2D array.")
 
@@ -168,8 +164,6 @@ class OCRoutine:
         """
         if not isinstance(mask_data, np.ndarray):
             raise TypeError("Input `mask_data` must be a numpy array.")
-        if mask_data.dtype != np.uint8 or not np.array_equal(np.unique(mask_data), [0, 1]):
-            raise ValueError("Input `mask_data` must be a binary mask (0s and 1s).")
         if len(mask_data.shape) != 2:
             raise ValueError("Input `mask_data` must be a 2D array.")
 

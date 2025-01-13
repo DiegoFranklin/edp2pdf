@@ -106,14 +106,14 @@ class RecursiveMask(MaskGetter):
         return mask_superposition
 
 
-class GaussianBlurTreshgMask(MaskGetter):
+class GaussianBlurTreshMask(MaskGetter):
     """
-    GaussianBlurTreshgMask class that generates a binary mask using Gaussian blur and thresholding.
+    GaussianBlurTreshMask class that generates a binary mask using Gaussian blur and thresholding.
     """
 
     def __init__(self, sigma: int = 20, iterations: int = 10):
         """
-        Initializes the GaussianBlurTreshgMask with the given parameters.
+        Initializes the GaussianBlurTreshMask with the given parameters.
 
         Args:
             sigma (int): Sigma for Gaussian blur. Defaults to 20.
