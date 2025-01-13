@@ -50,7 +50,46 @@ def euclidean_distance(a: np.ndarray, b: np.ndarray) -> float:
     return np.linalg.norm(c)
 
 
+from typing import Tuple
+
 def max_radius(data_shape: Tuple[int, int], center: Tuple[int, int]) -> int:
+    """
+    Calculates the maximum radius of a circle centered at the given point, that
+    does not exceed the boundaries of the given data shape.
+
+    Args:
+        data_shape (Tuple[int, int]): Shape of the data as (rows, columns).
+        center (Tuple[int, int]): Center of the circle as (row, column).
+
+    Returns:
+        int: The maximum radius of the circle in grid cells.
+
+    Raises:
+        TypeError: If `data_shape` is not a tuple of integers or `center` is not a tuple of integers.
+        ValueError: If `center` is out of bounds.
+    """
+    # Validate inputs
+    if not isinstance(data_shape, tuple) or len(data_shape) != 2 or not all(isinstance(d, int) for d in data_shape):
+        raise TypeError("`data_shape` must be a tuple of two integers.")
+    if not isinstance(center, tuple) or len(center) != 2 or not all(isinstance(c, int) for c in center):
+        raise TypeError("`center` must be a tuple of two integers.")
+    if center[0] < 0 or center[1] < 0 or center[0] >= data_shape[0] or center[1] >= data_shape[1]:
+        raise ValueError("Center coordinates are out of bounds.")
+
+    # Calculate distances to the nearest edge
+    row, col = center
+    rows, cols = data_shape
+    distances = [
+        row,             # Distance to the top edge
+        col,             # Distance to the left edge
+        rows - 1 - row,  # Distance to the bottom edge
+        cols - 1 - col   # Distance to the right edge
+    ]
+
+    # The maximum radius is the minimum distance to any edge
+    return min(distances)
+
+def further_corner_distance(data_shape: Tuple[int, int], center: Tuple[int, int]) -> int:
     """
     Calculates the maximum radius of a circle centered at the given point, that
     does not exceed the boundaries of the given data shape.
@@ -63,26 +102,27 @@ def max_radius(data_shape: Tuple[int, int], center: Tuple[int, int]) -> int:
         int: The maximum radius of the circle.
 
     Raises:
-        TypeError: If `data_shape` is not a tuple of integers or `center` is not a tuple of integers.
-        ValueError: If `center` is out of bounds.
+        TypeError: If data_shape is not a tuple of integers or center is not a tuple of integers.
+        ValueError: If center is out of bounds.
     """
     if not isinstance(data_shape, tuple) or len(data_shape) != 2 or not all(isinstance(d, int) for d in data_shape):
-        raise TypeError("Input `data_shape` must be a tuple of two integers.")
+        raise TypeError("Input data_shape must be a tuple of two integers.")
     if not isinstance(center, tuple) or len(center) != 2 or not all(isinstance(c, int) for c in center):
-        raise TypeError("Input `center` must be a tuple of two integers.")
+        raise TypeError("Input center must be a tuple of two integers.")
     if center[0] < 0 or center[1] < 0 or center[0] >= data_shape[0] or center[1] >= data_shape[1]:
         raise ValueError("Center coordinates are out of bounds.")
 
-    corners = [
-        (0, 0),
-        (0, data_shape[1] - 1),
-        (data_shape[0] - 1, 0),
-        (data_shape[0] - 1, data_shape[1] - 1),
+    borders = [
+        (0, center[1]),
+        (center[0], 0),
+        (data_shape[0] - 1, center[1]),
+        (center[0], data_shape[1] - 1)
     ]
     # Calculate the maximum distance from the center to the corners
-    max_radius = int(np.ceil(np.max([euclidean_distance(center, corner) for corner in corners])))
+    max_radius = int(np.ceil(np.max([euclidean_distance(center, corner) for corner in borders])))
 
     return max_radius
+
 
 
 class ImagePadder:
@@ -132,7 +172,7 @@ class ImagePadder:
     def _compute_max_radius(self):
         """Computes the maximum radius for padding if not provided."""
         if self._max_radius is None:
-            self._max_radius = max_radius(self._data.shape, self._center)
+            self._max_radius = further_corner_distance(self._data.shape, self._center)
 
     def _compute_pad_widths(self):
         """
