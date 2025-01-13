@@ -1,0 +1,58 @@
+import numpy as np
+import pytest
+from edp2pdf.image_process.edp_center.first_estimation import validate_inputs, first_center_estimation
+
+def test_validate_inputs_valid():
+    """Test valid inputs."""
+    data = np.random.random((10, 10))  # Valid 2D numpy array
+    mask = np.ones((10, 10))  # Valid 2D numpy array with matching shape
+    validate_inputs(data, mask)  # Should not raise any errors
+
+def test_validate_inputs_invalid_data_type():
+    """Test invalid data type (not a numpy array)."""
+    data = [[1, 0], [0, 1]]  # List instead of numpy array
+    mask = np.ones((2, 2))  # Valid mask
+    with pytest.raises(TypeError, match="Input `data` must be a numpy array"):
+        validate_inputs(data, mask)
+
+def test_validate_inputs_invalid_mask_type():
+    """Test invalid mask type (not a numpy array)."""
+    data = np.ones((2, 2))  # Valid data
+    mask = [[1, 0], [0, 1]]  # List instead of numpy array
+    with pytest.raises(TypeError, match="Input `mask` must be a numpy array"):
+        validate_inputs(data, mask)
+
+def test_validate_inputs_shape_mismatch():
+    """Test shape mismatch between data and mask."""
+    data = np.ones((10, 10))  # 10x10 data
+    mask = np.ones((5, 5))  # 5x5 mask (shape mismatch)
+    with pytest.raises(ValueError, match="Shapes of `data` and `mask` must match"):
+        validate_inputs(data, mask)
+
+def test_validate_inputs_non_2d_data():
+    """Test non-2D data array."""
+    data = np.random.random((10, 10, 3))  # 3D array (invalid)
+    mask = np.ones((10, 10))  # Valid mask
+    with pytest.raises(ValueError, match="Shapes of `data` and `mask` must match"):
+        validate_inputs(data, mask)
+
+def test_validate_inputs_non_2d_mask():
+    """Test non-2D mask array."""
+    data = np.ones((10, 10))  # Valid data
+    mask = np.ones((10, 10, 3))  # 3D array (invalid)
+    with pytest.raises(ValueError, match="Shapes of `data` and `mask` must match"):
+        validate_inputs(data, mask)
+
+def test_validate_inputs_empty_data():
+    """Test empty data array."""
+    data = np.array([])  # Empty array
+    mask = np.ones((0, 0))  # Empty mask
+    with pytest.raises(ValueError, match="Shapes of `data` and `mask` must match"):
+        validate_inputs(data, mask)
+
+def test_validate_inputs_empty_mask():
+    """Test empty mask array."""
+    data = np.ones((10, 10))  # Valid data
+    mask = np.array([])  # Empty mask
+    with pytest.raises(ValueError, match="Shapes of `data` and `mask` must match"):
+        validate_inputs(data, mask)

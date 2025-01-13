@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from edp2pdf.image_process.edp_center.centroid import get_centroid
+from edp2pdf.image_process.edp_center.first_estimation.centroid import get_centroid
 
 @pytest.fixture
 def setup_image():

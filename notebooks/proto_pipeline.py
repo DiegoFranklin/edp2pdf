@@ -5,10 +5,10 @@ import_src()
 from edp2pdf.image_process.image_io import LoadImage, WriteImage
 import edp2pdf.image_process.pre_process as prep
 import edp2pdf.image_process.mask.mask_getters as maskget
-from edp2pdf.image_process.edp_center.centroid import get_centroid
+from edp2pdf.image_process.edp_center.first_estimation.centroid import get_centroid
 from edp2pdf.image_process.edp_center.center_optimization.opt_funcs import Distance
 from edp2pdf.image_process.edp_center.center_optimization.optimization import optimize_center
-from edp2pdf.image_process.edp_center.autocorrelation import AutoCorrelation
+from edp2pdf.image_process.edp_center.first_estimation.autocorrelation import AutoCorrelation
 from edp2pdf.image_process.diffraction_pattern import eDiffractionPattern
 from edp2pdf.image_process.ellipse.elp_params import EllipseParams
 from edp2pdf.image_process.ellipse.elp_correction import correct_ellipse
