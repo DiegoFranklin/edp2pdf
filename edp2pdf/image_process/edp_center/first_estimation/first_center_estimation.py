@@ -1,16 +1,8 @@
 import numpy as np
 from typing import Tuple, Union
-from centroid import get_centroid
-from autocorrelation import autocorrelation
-
-def validate_inputs(data: np.ndarray, mask: np.ndarray) -> None:
-    """Validates the input data and mask."""
-    if not isinstance(data, np.ndarray):
-        raise TypeError("Input `data` must be a numpy array.")
-    if not isinstance(mask, np.ndarray):
-        raise TypeError("Input `mask` must be a numpy array.")
-    if data.shape != mask.shape:
-        raise ValueError("Shapes of `data` and `mask` must match.")
+from edp2pdf.image_process.edp_center.first_estimation.centroid import get_centroid
+from edp2pdf.image_process.edp_center.first_estimation.autocorrelation import autocorrelation
+from edp2pdf.image_process.edp_center.first_estimation.validate_inputs import validate_inputs
 
 def first_center_estimation(data: np.ndarray,
                                    mask: np.ndarray = None,

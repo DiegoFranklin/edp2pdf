@@ -1,8 +1,7 @@
 import numpy as np
 import cv2
 from typing import Tuple
-
-
+from edp2pdf.image_process.edp_center.first_estimation.validate_inputs import validate_inputs
 
 def apply_mask(data: np.ndarray, mask: np.ndarray) -> np.ndarray:
     """Applies the mask to the image data."""
@@ -36,6 +35,7 @@ def find_center(autocorrelation: np.ndarray, data_shape: Tuple[int, int]) -> Tup
 
 def autocorrelation(data: np.ndarray, mask: np.ndarray) -> Tuple[Tuple[int, int], np.ndarray]:
     """Computes the autocorrelation of the masked image."""
+    validate_inputs(data=data, mask=mask)
     autocorrelation = compute_autocorrelation(data, mask)
     ci, cj = find_center(autocorrelation, data.shape)
     return (ci, cj)

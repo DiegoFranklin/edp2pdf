@@ -3,15 +3,32 @@ import numpy as np
 from edp2pdf.image_process.edp_center.first_estimation.autocorrelation import autocorrelation
 import cv2
 
-@pytest.fixture
-def setup_image():
-    flat = np.zeros((512, 512))
-    img = cv2.circle(flat, (256, 256), 100, 1, -1)
-    return img
+def create_dummy_data(shape=(100, 100), sigma=10):
+    """
+    Creates a 2D Gaussian distribution centered in the middle of the array.
+
+    Args:
+        shape (tuple): Shape of the output array (rows, columns).
+        sigma (float): Standard deviation of the Gaussian distribution.
+
+    Returns:
+        np.ndarray: A 2D array representing a centered Gaussian distribution.
+    """
+    rows, cols = shape
+    center_row, center_col = rows // 2, cols // 2
+
+    # Create a grid of (x, y) coordinates
+    x = np.arange(cols) - center_col
+    y = np.arange(rows) - center_row
+    x, y = np.meshgrid(x, y)
+
+    # Compute the 2D Gaussian distribution
+    gaussian = np.exp(-(x**2 + y**2) / (2 * sigma**2))
+    return gaussian
 
 
-def test_autocorrelation(setup_image):
-    image = setup_image
+def test_autocorrelation():
+    image = create_dummy_data()
     center = autocorrelation(image, mask=np.ones_like(image))
 
     # Test return type
