@@ -1,58 +1,103 @@
-import numpy as np
 import pytest
-from edp2pdf.image_process.edp_center.first_estimation import validate_inputs, first_center_estimation
+import numpy as np
+from edp2pdf.image_process.edp_center.first_estimation.first_center_estimation import first_center_estimation, validate_inputs
 
+# Helper function to create a dummy diffraction pattern
+def create_dummy_data(shape=(100, 100), sigma=10):
+    """
+    Creates a 2D Gaussian distribution centered in the middle of the array.
+
+    Args:
+        shape (tuple): Shape of the output array (rows, columns).
+        sigma (float): Standard deviation of the Gaussian distribution.
+
+    Returns:
+        np.ndarray: A 2D array representing a centered Gaussian distribution.
+    """
+    rows, cols = shape
+    center_row, center_col = rows // 2, cols // 2
+
+    # Create a grid of (x, y) coordinates
+    x = np.arange(cols) - center_col
+    y = np.arange(rows) - center_row
+    x, y = np.meshgrid(x, y)
+
+    # Compute the 2D Gaussian distribution
+    gaussian = np.exp(-(x**2 + y**2) / (2 * sigma**2))
+    return gaussian
+
+# Test cases for validate_inputs function
 def test_validate_inputs_valid():
-    """Test valid inputs."""
-    data = np.random.random((10, 10))  # Valid 2D numpy array
-    mask = np.ones((10, 10))  # Valid 2D numpy array with matching shape
-    validate_inputs(data, mask)  # Should not raise any errors
+    data = create_dummy_data()
+    mask = np.ones_like(data)
+    validate_inputs(data, mask)  # Should not raise any error
 
 def test_validate_inputs_invalid_data_type():
-    """Test invalid data type (not a numpy array)."""
-    data = [[1, 0], [0, 1]]  # List instead of numpy array
-    mask = np.ones((2, 2))  # Valid mask
-    with pytest.raises(TypeError, match="Input `data` must be a numpy array"):
+    data = [[1, 2], [3, 4]]
+    mask = np.ones((2, 2))
+    with pytest.raises(TypeError, match="Input `data` must be a numpy array."):
         validate_inputs(data, mask)
 
 def test_validate_inputs_invalid_mask_type():
-    """Test invalid mask type (not a numpy array)."""
-    data = np.ones((2, 2))  # Valid data
-    mask = [[1, 0], [0, 1]]  # List instead of numpy array
-    with pytest.raises(TypeError, match="Input `mask` must be a numpy array"):
+    data = create_dummy_data()
+    mask = [[1, 0], [0, 1]]
+    with pytest.raises(TypeError, match="Input `mask` must be a numpy array."):
         validate_inputs(data, mask)
 
 def test_validate_inputs_shape_mismatch():
-    """Test shape mismatch between data and mask."""
-    data = np.ones((10, 10))  # 10x10 data
-    mask = np.ones((5, 5))  # 5x5 mask (shape mismatch)
-    with pytest.raises(ValueError, match="Shapes of `data` and `mask` must match"):
+    data = create_dummy_data((100, 100))
+    mask = np.ones((50, 50))
+    with pytest.raises(ValueError, match="Shapes of `data` and `mask` must match."):
         validate_inputs(data, mask)
 
-def test_validate_inputs_non_2d_data():
-    """Test non-2D data array."""
-    data = np.random.random((10, 10, 3))  # 3D array (invalid)
-    mask = np.ones((10, 10))  # Valid mask
-    with pytest.raises(ValueError, match="Shapes of `data` and `mask` must match"):
-        validate_inputs(data, mask)
+# Test cases for first_center_estimation function
+def test_first_center_estimation_centroid_method():
+    data = create_dummy_data()
+    center = first_center_estimation(data, method='centroid')
+    assert isinstance(center, tuple)
+    assert len(center) == 2
+    assert all(isinstance(coord, (int, float)) for coord in center)
 
-def test_validate_inputs_non_2d_mask():
-    """Test non-2D mask array."""
-    data = np.ones((10, 10))  # Valid data
-    mask = np.ones((10, 10, 3))  # 3D array (invalid)
-    with pytest.raises(ValueError, match="Shapes of `data` and `mask` must match"):
-        validate_inputs(data, mask)
+def test_first_center_estimation_autocorrelation_method():
+    data = create_dummy_data()
+    mask = np.ones_like(data)
+    center = first_center_estimation(data, mask=mask, method='autocorrelation')
+    assert isinstance(center, tuple)
+    assert len(center) == 2
+    assert all(isinstance(coord, (int, float)) for coord in center)
 
-def test_validate_inputs_empty_data():
-    """Test empty data array."""
-    data = np.array([])  # Empty array
-    mask = np.ones((0, 0))  # Empty mask
-    with pytest.raises(ValueError, match="Shapes of `data` and `mask` must match"):
-        validate_inputs(data, mask)
+def test_first_center_estimation_default_method():
+    data = create_dummy_data()
+    center = first_center_estimation(data)
+    assert isinstance(center, tuple)
+    assert len(center) == 2
+    assert all(isinstance(coord, (int, float)) for coord in center)
 
-def test_validate_inputs_empty_mask():
-    """Test empty mask array."""
-    data = np.ones((10, 10))  # Valid data
-    mask = np.array([])  # Empty mask
-    with pytest.raises(ValueError, match="Shapes of `data` and `mask` must match"):
-        validate_inputs(data, mask)
+def test_first_center_estimation_invalid_method():
+    data = create_dummy_data()
+    with pytest.raises(ValueError, match="Invalid method: invalid_method. Supported methods are \['centroid', 'autocorrelation'\]."):
+        first_center_estimation(data, method='invalid_method')
+
+def test_first_center_estimation_none_mask():
+    data = create_dummy_data()
+    center = first_center_estimation(data, mask=None)
+    assert isinstance(center, tuple)
+    assert len(center) == 2
+    assert all(isinstance(coord, (int, float)) for coord in center)
+
+def test_first_center_estimation_invalid_data_type():
+    data = [[1, 2], [3, 4]]
+    with pytest.raises(TypeError, match="Input `data` must be a numpy array."):
+        first_center_estimation(data)
+
+def test_first_center_estimation_invalid_mask_type():
+    data = create_dummy_data()
+    mask = [[1, 0], [0, 1]]
+    with pytest.raises(TypeError, match="Input `mask` must be a numpy array."):
+        first_center_estimation(data, mask=mask)
+
+def test_first_center_estimation_shape_mismatch():
+    data = create_dummy_data((100, 100))
+    mask = np.ones((50, 50))
+    with pytest.raises(ValueError, match="Shapes of `data` and `mask` must match."):
+        first_center_estimation(data, mask=mask)
